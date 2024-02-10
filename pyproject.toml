@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "embedding-conversion-server"
+version = "0.1.0"
+description = "Simple server to convert text to embedding before knn and to server an Index"
+authors = ["Tejas013 <tejasmadhukar6@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
