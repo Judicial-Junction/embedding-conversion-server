@@ -6,6 +6,8 @@ from models import Query
 import uvicorn
 import torch
 import boto3
+import pickle
+import json
 import os
 
 BIN_DIR = "bin/"
@@ -33,6 +35,16 @@ if os.path.isdir(BIN_DIR):
         s3.download_file("sentence-index", obj["key"], file_name)
 
 
+with open("index.pkl", "rb") as file_handle:
+    index = pickle.load(file_handle)
+
+with open("case_uid_to_case_info.json", "rb") as file_handle:
+    case_uid_to_case_info = json.load(file_handle)
+
+with open("uid_to_sentence_mapping.json", "rb") as file_handle:
+    uid_to_sentence_mapping = json.load(file_handle)
+
+
 @app.get("/health")
 async def health():
     return {"message": "Healthy"}
@@ -52,6 +64,13 @@ async def word_similarity(request: Query):
 
     response = client.search(body=query, index="word_embedding")
     return response["hits"]["hits"]
+
+
+@app.get("/sentence_similarity")
+async def sentence_similarity(request: Query):
+    query_embedding = model.encode([request.message])
+    result, uid = index.search(query_embedding, k=3)
+    return "hi"
 
 
 if __name__ == "__main__":
