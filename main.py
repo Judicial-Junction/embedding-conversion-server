@@ -36,7 +36,7 @@ async def semantic_similarity(request: Query):
         "size": 5,
         "query": {"knn": {"embedding": {"vector": mean_pooled, "k": 3}}},
         "_source": False,
-        "fields": ["Case Number", "Case Title", "Judgement Date", "Judgement PDF URL"],
+        "fields": ["Case Number", "Case Title", "Judgement Date", "Judgement PDF URL", "Judgement Text"],
     }
 
     response = client.search(body=query, index="word_embedding")
