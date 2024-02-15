@@ -39,7 +39,7 @@ async def semantic_similarity(request: Query):
         "fields": ["Case Number", "Case Title", "Judgement Date", "Judgement PDF URL", "Judgement Text"],
     }
 
-    response = client.search(body=query, index="word_embedding")
+    response = client.search(body=query, index="case-text")
     return response["hits"]["hits"]
 
 
