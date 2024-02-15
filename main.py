@@ -19,6 +19,7 @@ client = OpenSearch(
     use_ssl=True,
     verify_certs=False,
     ssl_show_warn=False,
+    timeout=60,
 )
 
 
@@ -36,7 +37,13 @@ async def semantic_similarity(request: Query):
         "size": 5,
         "query": {"knn": {"embedding": {"vector": mean_pooled, "k": 3}}},
         "_source": False,
-        "fields": ["Case Number", "Case Title", "Judgement Date", "Judgement PDF URL", "Judgement Text"],
+        "fields": [
+            "Case Number",
+            "Case Title",
+            "Judgement Date",
+            "Judgement PDF URL",
+            "Judgement Text",
+        ],
     }
 
     response = client.search(body=query, index="case-text")
