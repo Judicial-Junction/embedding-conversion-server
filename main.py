@@ -96,6 +96,9 @@ async def sentence_similarity(request: Query):
         mini_res["fields"]["Judgement Date"] = [case_info["j_d"]]
         mini_res["fields"]["Judgement PDF URL"] = [case_info["pdf"]]
         mini_res["fields"]["Sentences"].append(
+            uid_to_sentence_mapping[str(int(case_sent) - 2) + case_no]
+        )
+        mini_res["fields"]["Sentences"].append(
             uid_to_sentence_mapping[str(int(case_sent) - 1) + case_no]
         )
         mini_res["fields"]["Sentences"].append(
@@ -103,6 +106,9 @@ async def sentence_similarity(request: Query):
         )
         mini_res["fields"]["Sentences"].append(
             uid_to_sentence_mapping[str(int(case_sent) + 1) + case_no]
+        )
+        mini_res["fields"]["Sentences"].append(
+            uid_to_sentence_mapping[str(int(case_sent) + 2) + case_no]
         )
         res.append(mini_res)
 
