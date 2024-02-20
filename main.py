@@ -91,10 +91,10 @@ async def sentence_similarity(request: Query):
         mini_res["_score"] = i["_score"]
         mini_res["fields"] = {}
         mini_res["fields"]["Sentences"] = []
-        mini_res["fields"]["Case Number"] = case_info["c_no"]
-        mini_res["fields"]["Case Title"] = case_info["c_t"]
-        mini_res["fields"]["Judgement Date"] = case_info["j_d"]
-        mini_res["fields"]["Judgement PDF URL"] = case_info["pdf"]
+        mini_res["fields"]["Case Number"] = [case_info["c_no"]]
+        mini_res["fields"]["Case Title"] = [case_info["c_t"]]
+        mini_res["fields"]["Judgement Date"] = [case_info["j_d"]]
+        mini_res["fields"]["Judgement PDF URL"] = [case_info["pdf"]]
         mini_res["fields"]["Sentences"].append(
             uid_to_sentence_mapping[str(int(case_sent) - 1) + case_no]
         )
