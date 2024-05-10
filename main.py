@@ -1,17 +1,12 @@
 from fastapi import FastAPI
 from opensearchpy import OpenSearch
 from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
 from models import Query
 import uvicorn
-import torch
 import os
 import json
 
 load_dotenv()
-
-model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-print("model loaded")
 
 with open("case_uid_to_case_info.json", "rb") as file_handle:
     case_uid_to_case_info = json.load(file_handle)
@@ -40,51 +35,27 @@ async def health():
     return {"message": "Healthy"}
 
 
-@app.post("/semantic_similarity")
-async def semantic_similarity(request: Query):
-    with torch.no_grad():
-        mean_pooled = model.encode(request.message)
-
-    query = {
-        "size": 5,
-        "query": {"knn": {"embedding": {"vector": mean_pooled, "k": 3}}},
-        "_source": False,
-        "fields": [
-            "Case Number",
-            "Case Title",
-            "Judgement Date",
-            "Judgement PDF URL",
-            "Judgement Text",
-        ],
-    }
-
-    response = client.search(body=query, index="case-text")
-    return response["hits"]["hits"]
-
-
 @app.post("/sentence_similarity")
 async def sentence_similarity(request: Query):
-    with torch.no_grad():
-        mean_pooled = model.encode(request.message)
-
     query = {
-        "size": 5,
-        "query": {"knn": {"embedding": {"vector": mean_pooled, "k": 3}}},
-        "_source": False,
-        "fields": [
-            "UID",
-        ],
+        "_source": {
+            "excludes": [
+                "Sentence_embedding"
+            ]
+        },
+        "query": {"neural": {"Sentence_embedding": {"query_text": request.message, "k": 5, "model_id": "O7sGY48BxYep_-iYPhhF"}}},
+        "size": 5
     }
 
     res = []
 
     response = client.search(body=query, index="sentence")
-    result = response["hits"]["hits"]
+    result = response["hits"]["hits"]["_source"]
 
     for i in result:
         mini_res = {}
-        case_no = str(i["fields"]["UID"][0])[-5:]
-        case_sent = str(i["fields"]["UID"][0])[:-5]
+        case_no = str(i["fields"]["CaseUID"][0])[-5:]
+        case_sent = str(i["fields"]["CaseUID"][0])[:-5]
         case_info = case_uid_to_case_info[str(int(case_no))]
         mini_res["_index"] = i["_index"]
         mini_res["_id"] = i["_id"]
@@ -102,7 +73,7 @@ async def sentence_similarity(request: Query):
             uid_to_sentence_mapping[str(int(case_sent) - 1) + case_no]
         )
         mini_res["fields"]["Sentences"].append(
-            uid_to_sentence_mapping[str(i["fields"]["UID"][0])]
+            uid_to_sentence_mapping[str(i["fields"]["CaseUID"][0])]
         )
         mini_res["fields"]["Sentences"].append(
             uid_to_sentence_mapping[str(int(case_sent) + 1) + case_no]
