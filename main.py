@@ -17,6 +17,12 @@ with open("uid_to_sentence_mapping.json", "rb") as file_handle:
 
 df = pd.read_csv('cases.csv')
 
+def getSentence(uid: str):
+    for sentence in uid_to_sentence_mapping :
+        if sentence['CaseUID'] == uid:
+            return sentence['Sentence']
+
+
 app = FastAPI()
 client = OpenSearch(
     hosts=[{"host": os.getenv("OPENSEARCH_HOST", "0.0.0.0"), "port": 9200}],
@@ -50,13 +56,13 @@ async def sentence_similarity(request: Query):
 
     res = []
 
-    response = client.search(body=query, index="sentence")
-    result = response["hits"]["hits"]["_source"]
+    response = client.search(body=query, index="sentence-index")
+    result = response["hits"]["hits"]
 
     for i in result:
         mini_res = {}
-        case_no = str(i["fields"]["CaseUID"][0])[-5:]
-        case_sent = str(i["fields"]["CaseUID"][0])[:-5]
+        case_no = str(i["_source"]["CaseUID"])[-5:]
+        case_sent = str(i["_source"]["CaseUID"])[:-5]
         case_info = case_uid_to_case_info[str(int(case_no))]
         mini_res["_index"] = i["_index"]
         mini_res["_id"] = i["_id"]
@@ -69,19 +75,19 @@ async def sentence_similarity(request: Query):
         mini_res["fields"]["Judgement PDF URL"] = case_info["pdf"]
         mini_res["fields"]["Judgement Text"] = df.loc[df['Case Number'] == case_info["c_no"], 'Judgement Text'].values[0]
         mini_res["fields"]["Sentences"].append(
-            uid_to_sentence_mapping[str(int(case_sent) - 2) + case_no]
+            getSentence(str(int(case_sent) - 2) + case_no)
         )
         mini_res["fields"]["Sentences"].append(
-            uid_to_sentence_mapping[str(int(case_sent) - 1) + case_no]
+            getSentence(str(int(case_sent) - 1) + case_no)
         )
         mini_res["fields"]["Sentences"].append(
-            uid_to_sentence_mapping[str(i["fields"]["CaseUID"][0])]
+            getSentence(str(i["_source"]["CaseUID"]))
         )
         mini_res["fields"]["Sentences"].append(
-            uid_to_sentence_mapping[str(int(case_sent) + 1) + case_no]
+            getSentence(str(int(case_sent) + 1) + case_no)
         )
         mini_res["fields"]["Sentences"].append(
-            uid_to_sentence_mapping[str(int(case_sent) + 2) + case_no]
+            getSentence(str(int(case_sent) + 2) + case_no)
         )
         res.append(mini_res)
 
